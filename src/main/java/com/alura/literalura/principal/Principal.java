@@ -1,7 +1,13 @@
 package com.alura.literalura.principal;
 
+import com.alura.literalura.dto.LibroDTO;
+import com.alura.literalura.exeption.LibroRepetidoExeption;
+import com.alura.literalura.model.Autor;
 import com.alura.literalura.model.Libro;
-import com.alura.literalura.service.APIService;
+import com.alura.literalura.repository.AutorRepository;
+import com.alura.literalura.repository.LibroRepository;
+import com.alura.literalura.service.ConsumoAPI;
+import com.alura.literalura.service.ConvertirDatos;
 
 import java.util.List;
 import java.util.Optional;
@@ -9,12 +15,19 @@ import java.util.Scanner;
 
 public class Principal {
     private Scanner teclado = new Scanner(System.in);
-    private APIService consumoAPI = new APIService();
-    private ConvierteDatos conversor = new ConvierteDatos();
+    private ConsumoAPI consumoAPI = new ConsumoAPI();
+    private ConvertirDatos conversor = new ConvertirDatos();
     private final String URL_BASE = "https://gutendex.com/books/?search=";
     List<Libro> libros = null;
 
     LibroRepository repositorio;
+
+    AutorRepository repositorioAutor;
+
+    public Principal(LibroRepository repositorio, AutorRepository repositorioAutor) {
+        this.repositorio = repositorio;
+        this.repositorioAutor = repositorioAutor;
+    }
 
     public void muestraElMenu() {
         var opcion = -1;
@@ -35,19 +48,19 @@ public class Principal {
 
             switch (opcion) {
                 case 1:
-                    //buscarLibroWeb();
+                    buscarLibroWeb();
                     break;
                 case 2:
-                    //buscarTodosLosLibros();
+                    buscarTodosLosLibros();
                     break;
                 case 3:
-                    //buscarAutoresRegistrados();
+                    buscarAutoresRegistrados();
                     break;
                 case 4:
-                    //buscarAutoresVivosEnAnio();
+                    buscarAutoresVivosEnAnio();
                     break;
                 case 5:
-                    //buscarLibrosPorIdioma();
+                    buscarLibrosPorIdioma();
                     break;
                 case 0:
                     System.out.println("Saliendo...");
@@ -63,17 +76,12 @@ public class Principal {
         System.out.println("Introduce el nombre del libro a buscar");
         var busqueda = teclado.nextLine();
         try {
-            // Buscar si el libro ya existe en la base de datos
             Optional<Libro> libroBase = repositorio.findByTituloContainsIgnoreCase(busqueda);
             if (libroBase.isPresent()) {
-                throw new LibroDuplicadoException("El libro ya existe en la base de datos");
+                throw new LibroRepetidoExeption("El libro ya existe en la base de datos");
             }
-            // Consumir la API
             var json = consumoAPI.consumir(URL_BASE + busqueda.replace(" ", "%20"));
-            System.out.println(json);
-            // Deserializar el JSON a un LibroDTO (primer libro)
             LibroDTO datos = conversor.obtenerDatos(json, LibroDTO.class);
-            // Verificar si el autor ya existe en la base de datos
             Optional<Autor> autorExistente = repositorioAutor.findByNombreIgnoreCase(datos.autores().get(0).nombre());
             Autor autor;
             if (autorExistente.isPresent()) {
@@ -82,16 +90,13 @@ public class Principal {
                 autor = new Autor(datos.autores().get(0)); // Crear nuevo autor si no existe
                 autor = repositorioAutor.save(autor); // Guardar el nuevo autor para que esté gestionado
             }
-            // Crear la entidad Libro a partir de LibroDTO
             Libro libro = new Libro(datos);
-            // Asociar el autor al libro
             libro.setAutor(autor);
 
-            // Guardar el libro en la base de datos (el autor se guarda automáticamente por cascada)
             repositorio.save(libro);
             System.out.println("Libro guardado con éxito.");
 
-        } catch (LibroDuplicadoException e) {
+        } catch (LibroRepetidoExeption e) {
             System.out.println(e.getMessage());
         } catch (Exception e) {
             System.out.println("Ha ocurrido un error: " + e.getMessage());
@@ -104,7 +109,7 @@ public class Principal {
         libros.forEach(l -> System.out.println("---------- Libro --------------\n" +
                 "Título: " + l.getTitulo() + "\n" +
                 "Idioma: " + l.getIdioma() + "\n" +
-                "Número de descargas: " + l.getNumeroDescargas() + "\n" +
+                "Número de descargas: " + l.getNumDescargas() + "\n" +
                 "Autor: " + l.getAutor().getNombre() +
                 "\n---------------------" + "\n"));
     }

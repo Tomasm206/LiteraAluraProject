@@ -1,5 +1,6 @@
 package com.alura.literalura.model;
 
+import com.alura.literalura.dto.LibroDTO;
 import jakarta.persistence.*;
 
 @Entity
@@ -16,7 +17,7 @@ public class Libro {
     @ManyToOne
     private Autor autor;
 
-    public Libro(String titulo, String idioma, String numDescargas) {
+    public Libro(LibroDTO libroDTO) {
         this.titulo = titulo;
         this.idioma = idioma;
         this.numDescargas = numDescargas;

@@ -1,5 +1,6 @@
 package com.alura.literalura.model;
 
+import com.alura.literalura.dto.AutorDTO;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -20,7 +21,7 @@ public class Autor {
 
     private Integer fallecimiento;
 
-    public Autor(String nombre, Integer nacimiento, Integer fallecimiento) {
+    public Autor(AutorDTO autorDTO) {
         this.nombre = nombre;
         this.nacimiento = nacimiento;
         this.fallecimiento = fallecimiento;
