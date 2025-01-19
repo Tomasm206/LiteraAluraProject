@@ -3,6 +3,7 @@ package com.alura.literalura.model;
 import com.alura.literalura.dto.AutorDTO;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -15,16 +16,19 @@ public class Autor {
     private String nombre;
 
     @OneToMany(mappedBy = "autor", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<Libro> libros;
+    private List<Libro> libros = new ArrayList<>();
 
     private Integer nacimiento;
 
     private Integer fallecimiento;
 
+    public Autor() {
+    }
+
     public Autor(AutorDTO autorDTO) {
-        this.nombre = nombre;
-        this.nacimiento = nacimiento;
-        this.fallecimiento = fallecimiento;
+        this.nombre = autorDTO.nombre();
+        this.nacimiento = autorDTO.nacimiento();
+        this.fallecimiento = autorDTO.fallecimiento();
     }
 
     public long getId() {
@@ -69,11 +73,19 @@ public class Autor {
 
     @Override
     public String toString() {
-        return "\n------ Autor-----\n" +
-                "Nombre: " +nombre + "\n" +
-                "Fecha de Nacimiento: " + nacimiento + "\n" +
-                "Fecha de Fallecimiento: " + fallecimiento + "\n" +
-                "Libros: " + libros.stream().map(Libro::getTitulo).reduce((a, b) -> a + ", " + b).orElse("")
-                + "\n-----------------";
+        String listaLibros = (libros != null && !libros.isEmpty())
+                ? libros.stream()
+                .map(Libro::getTitulo)
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("No hay libros registrados")
+                : "No hay libros registrados";
+
+        return "\n------ Autor -----\n" +
+                "Nombre: " + (nombre != null ? nombre : "Desconocido") + "\n" +
+                "Fecha de Nacimiento: " + (nacimiento != null ? nacimiento : "No registrada") + "\n" +
+                "Fecha de Fallecimiento: " + (fallecimiento != null ? fallecimiento : "No registrada") + "\n" +
+                "Libros: " + listaLibros +
+                "\n------------------";
     }
+
 }

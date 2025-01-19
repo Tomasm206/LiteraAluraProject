@@ -17,10 +17,14 @@ public class Libro {
     @ManyToOne
     private Autor autor;
 
+    public Libro(){
+
+    }
+
     public Libro(LibroDTO libroDTO) {
-        this.titulo = titulo;
-        this.idioma = idioma;
-        this.numDescargas = numDescargas;
+        this.titulo = libroDTO.titulo();
+        this.idioma = String.join(",", libroDTO.idiomas());
+        this.numDescargas = String.valueOf(libroDTO.numeroDescargas());
     }
 
     public long getId() {

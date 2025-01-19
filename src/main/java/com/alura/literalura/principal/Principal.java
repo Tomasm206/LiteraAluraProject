@@ -10,6 +10,7 @@ import com.alura.literalura.service.ConsumoAPI;
 import com.alura.literalura.service.ConvertirDatos;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Scanner;
 
@@ -25,52 +26,71 @@ public class Principal {
     AutorRepository repositorioAutor;
 
     public Principal(LibroRepository repositorio, AutorRepository repositorioAutor) {
-        this.repositorio = repositorio;
-        this.repositorioAutor = repositorioAutor;
+        this.repositorio = Objects.requireNonNull(repositorio, "El repositorio de libros no puede ser nulo");
+        this.repositorioAutor = Objects.requireNonNull(repositorioAutor, "El repositorio de autores no puede ser nulo");
     }
+
+
+//    public Principal(LibroRepository repositorio, AutorRepository repositorioAutor) {
+//        this.repositorio = repositorio;
+//        this.repositorioAutor = repositorioAutor;
+//    }
 
     public void muestraElMenu() {
         var opcion = -1;
         while (opcion != 0) {
             var menu = """
-                    Elije una opción:
-                    1 - Buscar libros
-                    2 - Mostrar los libros guardados
-                    3 - Mostrar autores registrados
-                    4 - Mostrar autores vivos en cierto año
-                    5 - Mostrar libros por idioma
-                    
-                    0 - Salir
-                    """;
-            System.out.println(menu);
-            opcion = teclado.nextInt();
-            teclado.nextLine();
+                Elije una opción:
+                1 - Buscar libros
+                2 - Mostrar los libros guardados
+                3 - Mostrar autores registrados
+                4 - Mostrar autores vivos en cierto año
+                5 - Mostrar libros por idioma
 
-            switch (opcion) {
-                case 1:
-                    buscarLibroWeb();
-                    break;
-                case 2:
-                    buscarTodosLosLibros();
-                    break;
-                case 3:
-                    buscarAutoresRegistrados();
-                    break;
-                case 4:
-                    buscarAutoresVivosEnAnio();
-                    break;
-                case 5:
-                    buscarLibrosPorIdioma();
-                    break;
-                case 0:
-                    System.out.println("Saliendo...");
-                    break;
-                default:
-                    System.out.println("Opción no válida.");
-                    break;
+                0 - Salir
+                """;
+            System.out.println(menu);
+
+            try {
+                // Intentamos leer la opción como un número entero
+                System.out.print("Ingrese su opción: ");
+                opcion = teclado.nextInt();
+                teclado.nextLine(); // Consumir el salto de línea adicional
+
+                // Evaluamos la opción del menú
+                switch (opcion) {
+                    case 1:
+                        buscarLibroWeb();
+                        break;
+                    case 2:
+                        buscarTodosLosLibros();
+                        break;
+                    case 3:
+                        buscarAutoresRegistrados();
+                        break;
+                    case 4:
+                        buscarAutoresVivosEnAnio();
+                        break;
+                    case 5:
+                        buscarLibrosPorIdioma();
+                        break;
+                    case 0:
+                        System.out.println("Saliendo...");
+                        break;
+                    default:
+                        System.out.println("Opción no válida.");
+                        break;
+                }
+            } catch (Exception e) {
+                // Si ocurre una excepción, mostramos un mensaje de error
+                System.out.println("---------------------------------");
+                System.out.println("Error: Por favor, ingrese un número válido.");
+                System.out.println("---------------------------------");
+                teclado.nextLine(); // Limpiar el buffer de entrada
             }
         }
     }
+
     //metodo 1
     private void buscarLibroWeb() {
         System.out.println("Introduce el nombre del libro a buscar");
@@ -116,9 +136,14 @@ public class Principal {
     //metodo 3
     private void buscarAutoresRegistrados() {
         List<Autor> autores = repositorio.todosLosAutores();
+        if (autores == null || autores.isEmpty()) {
+            System.out.println("No se encontraron autores.");
+            return;
+        }
         System.out.println("Autores encontrados: \n");
         autores.forEach(System.out::println);
     }
+
     //metodo 4
     private void buscarAutoresVivosEnAnio() {
         System.out.println("Introduce el año a buscar");
@@ -142,6 +167,8 @@ public class Principal {
 
             var idioma = teclado.nextLine();
 
+            System.out.println("Idioma seleccionado: " + idioma);  // Verifica el idioma seleccionado
+
             switch (idioma) {
                 case "es":
                 case "en":
@@ -156,8 +183,12 @@ public class Principal {
                     break;
             }
         }
-        // Mostrar los libros encontrados
-        System.out.println("Libros encontrados: \n");
-        libros.forEach(System.out::println);
+
+        if (libros != null && !libros.isEmpty()) {
+            System.out.println("Libros encontrados: \n");
+            libros.forEach(System.out::println);
+        } else {
+            System.out.println("No se encontraron libros para el idioma seleccionado.");
+        }
     }
 }
